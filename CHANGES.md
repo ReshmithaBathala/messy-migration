@@ -3,69 +3,70 @@
 ## 🔧 Major Issues Identified in Original Code
 
 1. **SQL Injection Vulnerabilities**
-   - Used string interpolation in SQL.
-   - ✅ Replaced with parameterized queries.
+   -  Used string interpolation in SQL queries.
+   -  Replaced with parameterized queries using SQLite placeholders.
 
-2. **Poor Structure**
-   - All routes, DB logic, and config in `app.py`.
-   - ✅ Split into `routes/`, `db.py`, `utils/`, `config.py`.
+2. **Monolithic Code Structure**
+   -  All logic bundled in `app.py`.
+   -  Refactored into:
+     - `routes/` → Flask Blueprints
+     - `utils/` → JWT, password security, validation
+     - `db.py`, `config.py` → modular responsibilities
 
 3. **No Input Validation**
-   - Accepted arbitrary JSON without checks.
-   - ✅ Used `pydantic` for schema validation with helpful error messages.
+   -  APIs accepted arbitrary JSON.
+   -  Added `pydantic` schemas for clean request validation and error messaging.
 
 4. **Plaintext Password Storage**
-   - Passwords stored as raw strings.
-   - ✅ Implemented `bcrypt` hashing and secure verification.
+   -  Stored passwords in plain text.
+   -  Implemented secure password hashing using `bcrypt`.
 
-5. **No Environment Configuration**
-   - Hardcoded DB name, port, and debug flag.
-   - ✅ Moved all config to `.env` + `python-dotenv`.
+5. **No Authentication Mechanism**
+   -  All routes were open to unauthenticated access.
+   -  Integrated **JWT authentication** with token expiration and protected routes.
 
-6. **Poor API Responses**
-   - Returned strings instead of JSON.
-   - ✅ Now uses proper `jsonify()` with status codes.
+6. **Hardcoded Configuration**
+   -  Secrets and settings were hardcoded.
+   -  Migrated to `.env` using `python-dotenv` for environment-based configuration.
 
-7. **Missing Error Handling**
-   - No clear feedback or code for bad inputs.
-   - ✅ Standardized all error responses with 400/401/404 codes.
+7. **Inconsistent API Responses**
+   -  Returned strings and unclear messages.
+   -  Standardized all responses using `jsonify()` and appropriate HTTP status codes.
 
----
-
-## 🧠 Architectural Decisions
-
-- Blueprint-based modular routing
-- `db.py` handles safe connection management per request
-- `config.py` isolates environment config
-- `validators.py` centralizes input schemas
-- `security.py` hashes and verifies passwords using `bcrypt`
+8. **Missing Error Handling**
+   -  No error structure or handling strategy.
+   -  Unified 400/401/404/500 responses with meaningful messages.
 
 ---
 
-## ⚖️ Trade-offs
+##  Security Improvements
 
-- Still using SQLite for simplicity, although PostgreSQL is better for production.
-- No JWT or session-based auth (out of scope).
-- No Swagger docs or OpenAPI — time-focused trade-off.
-
----
-
-## ⏳ With More Time
-
-- Add API auth (JWT/session)
-- Use migrations (like Alembic) for DB evolution
-- Add request/response logging
-- Implement pagination and sorting for `/users`
-- Build Postman collection or Swagger for API
+- Issued **JWT tokens** upon login with a 1-hour expiration.
+- Implemented `@require_auth` decorator to protect user-related routes.
+- Handled invalid or expired tokens with clear 401 responses.
+- Stored `JWT_SECRET` and sensitive values securely in `.env`.
 
 ---
 
-## 🤖 AI Usage Disclosure
+##  Architectural Decisions
 
-Used **ChatGPT-4** to:
-- Plan and organize refactor
-- Write secure, modular, clean Flask code
-- Generate `pydantic` models and bcrypt logic
-- Draft and polish this `CHANGES.md`
+- Modular Flask app using Blueprints for scalability.
+- Stateless authentication via JWT.
+- Centralized decorators and utilities for clean logic reuse.
+- `.env` + `config.py` to isolate sensitive data and settings.
+- Utility layer for password hashing and token encoding/decoding.
 
-All generated code was reviewed and customized by me.
+---
+
+
+##  AI Usage Disclosure
+
+- **Tool Used**: ChatGPT-4
+- **Used For**:
+  - Identifying key architectural and security issues
+  - Writing modular Flask + JWT logic
+  - Structuring and drafting this changelog
+- **Review**: All generated code was verified, tested, and modified by me.
+
+---
+Runs via `python app.py` as expected.
